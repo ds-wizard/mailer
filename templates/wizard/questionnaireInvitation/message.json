@@ -1,0 +1,15 @@
+{
+  "id": "questionnaireInvitation",
+  "subject": "Project Invitation",
+  "parts": [
+    {
+      "type": "html",
+      "template": "message.html.j2"
+    },
+    {
+      "type": "plain",
+      "template": "message.txt.j2"
+    }
+  ],
+  "modes": ["wizard"]
+}
