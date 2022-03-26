@@ -10,15 +10,32 @@
 
 ## Dependencies
 
-*TODO*
+-  PostgreSQL
+
+For more information, see [deployment example](https://github.com/ds-wizard/dsw-deployment-example).
 
 ## Documentation
 
-*TODO*
+For general information, please visit our [User Guide](https://guide.ds-wizard.org).
 
 ## Docker
 
-*TODO*
+Docker image is prepared with basic dependencies and worker installed. It is available though Docker Hub: [datastewardshipwizard/mailer](https://hub.docker.com/r/datastewardshipwizard/mailer).
+
+### Build image
+
+You can easily build the image yourself:
+
+```bash
+$ docker build . -t mailer:local
+```
+
+### Mount points
+
+- `/app/config.yml` = configuration file (see [example](config.example.yml))
+- `/app/templates` = email templates (see [templates](templates))
+
+A template must always contain the `message.json` descriptor, having both HTML and Plain text part is recommended.
 
 ## License
 

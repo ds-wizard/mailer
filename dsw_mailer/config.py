@@ -179,7 +179,7 @@ class MailerConfigParser:
             'host': '',
             'port': None,
             'ssl': None,
-            'security': 'plain',
+            'security': None,
             'authEnabled': False,
             'username': None,
             'password': None,
