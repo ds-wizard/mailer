@@ -5,6 +5,7 @@ import ssl
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 
 from ..config import MailConfig
 from ..context import Context
@@ -52,7 +53,7 @@ class SMTPSender:
                 )
             return server.send_message(
                 msg=self._convert_email(mail),
-                from_addr=mail.sent_from,
+                from_addr=formataddr((mail.from_name, mail.from_mail)),
                 to_addrs=mail.recipients,
             )
 
@@ -72,14 +73,14 @@ class SMTPSender:
                 )
             return server.send_message(
                 msg=self._convert_email(mail),
-                from_addr=mail.sent_from,
+                from_addr=formataddr((mail.from_name, mail.from_mail)),
                 to_addrs=mail.recipients,
             )
 
     def _convert_email(self, mail: MailMessage) -> MIMEMultipart:
         msg = MIMEMultipart('alternative')
         msg.set_charset(EMAIL_ENCODING)
-        msg['From'] = mail.sent_from
+        msg['From'] = formataddr((mail.from_name, mail.from_mail))
         msg['To'] = ', '.join(mail.recipients)
         msg['Subject'] = mail.subject
         if mail.plain_body is not None:

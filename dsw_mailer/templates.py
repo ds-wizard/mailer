@@ -24,12 +24,15 @@ class MailTemplate:
         ctx = rq.ctx
         msg = MailMessage()
         msg.recipients = rq.recipients
-        subject_prefix = ctx.get('appTitle', mail_name) or mail_name
+        subject_prefix = ctx.get('appTitle', None)
+        if subject_prefix is None:
+            subject_prefix = mail_name
         msg.subject = f'[{subject_prefix}] {self.subject}'
         ctx['msgId'] = rq.id
         ctx['subject'] = msg.subject
         ctx['appTitle'] = subject_prefix
-        msg.sent_from = f'{subject_prefix} <{mail_from}>'
+        msg.from_mail = mail_from
+        msg.from_name = subject_prefix
         if self.html_template is not None:
             msg.html_body = self.html_template.render(ctx=ctx)
         if self.plain_template is not None:

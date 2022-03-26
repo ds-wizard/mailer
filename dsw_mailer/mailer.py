@@ -64,7 +64,7 @@ class Mailer(CommandWorker):
                 query=Queries.UPDATE_CMD_ERROR,
                 attempts=command.get('attempts', 0) + 1,
                 error_message=f'Failed with exception: {str(e)}',
-                updated_at=datetime.datetime.now(),
+                updated_at=datetime.datetime.utcnow(),
                 uuid=command['uuid'],
             )
 
@@ -88,7 +88,7 @@ class Mailer(CommandWorker):
         app_ctx.db.execute_query(
             query=Queries.UPDATE_CMD_DONE,
             attempts=cmd.attempts + 1,
-            updated_at=datetime.datetime.now(),
+            updated_at=datetime.datetime.utcnow(),
             uuid=cmd.uuid,
         )
 

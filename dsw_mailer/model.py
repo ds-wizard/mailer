@@ -60,7 +60,8 @@ class MailMessage:
     # TODO: images, attachments
 
     def __init__(self):
-        self.sent_from = ''
+        self.from_mail = ''
+        self.from_name = ''
         self.recipients = list()
         self.subject = ''
         self.plain_body = None  # type: Optional[str]
