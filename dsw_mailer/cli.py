@@ -1,7 +1,8 @@
+import click  # type: ignore
 import json
 import pathlib
+import sys
 
-import click  # type: ignore
 from typing import IO
 
 from .config import MailerConfig, MailerConfigParser, MissingConfigurationError
@@ -51,6 +52,9 @@ def extract_message_request(ctx, param, value: IO):
               default='wizard')
 def cli(ctx, config: MailerConfig, workdir: str, mode: str):
     """Mailer for sending emails from DSW"""
+    if not config.mail.enabled:
+        click.echo('Mail is set to disabled, why even running mailer?')
+        sys.exit(1)
     path_workdir = pathlib.Path(workdir)
     ctx.obj['mailer'] = Mailer(config, path_workdir, mode)
 

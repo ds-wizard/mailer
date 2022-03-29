@@ -26,24 +26,6 @@ class DatabaseConfig:
                f'- queue_timout = {self.queue_timout} ({type(self.queue_timout)})\n'
 
 
-class S3Config:
-
-    def __init__(self, url: str, username: str, password: str,
-                 bucket: str, region: str):
-        self.url = url
-        self.username = username
-        self.password = password
-        self.bucket = bucket
-        self.region = region
-
-    def __str__(self):
-        return f'S3Config\n' \
-               f'- url = {self.url} ({type(self.url)})\n' \
-               f'- username = {self.username} ({type(self.username)})\n' \
-               f'- password = {self.password} ({type(self.password)})\n' \
-               f'- bucket = {self.bucket} ({type(self.bucket)})\n'
-
-
 class LoggingConfig:
 
     def __init__(self, level: str, global_level: str, message_format: str):
@@ -111,43 +93,41 @@ class MailConfig:
     def has_credentials(self) -> bool:
         return self.username is not None and self.password is not None
 
-
-class ExperimentalConfig:
-
-    def __init__(self, more_apps_enabled: bool):
-        self.more_apps_enabled = more_apps_enabled
-
     def __str__(self):
-        return f'ExperimentalConfig\n' \
-               f'- more_apps_enabled = {self.more_apps_enabled}\n'
+        return f'MailConfig\n' \
+               f'- enabled = {self.enabled}\n' \
+               f'- name = {self.name}\n' \
+               f'- email = {self.email}\n' \
+               f'- host = {self.host}\n' \
+               f'- port = {self.port}\n' \
+               f'- security = {self.security}\n' \
+               f'- auth = {self.auth}\n' \
+               f'- rate_limit_window = {self.rate_limit_window}\n' \
+               f'- rate_limit_count = {self.rate_limit_count}\n'
 
 
 class MailerConfig:
 
-    def __init__(self, db: DatabaseConfig, s3: S3Config, log: LoggingConfig,
-                 mail: MailConfig, experimental: ExperimentalConfig):
+    def __init__(self, db: DatabaseConfig, log: LoggingConfig,
+                 mail: MailConfig):
         self.db = db
-        self.s3 = s3
         self.log = log
         self.mail = mail
-        self.experimental = experimental
 
     def __str__(self):
         return f'MailerConfig\n' \
                f'====================\n' \
                f'{self.db}' \
-               f'{self.s3}' \
                f'{self.log}' \
-               f'{self.experimental}' \
+               f'{self.mail}' \
                f'====================\n'
 
 
 class MailerConfigParser:
 
     DB_SECTION = 'database'
-    S3_SECTION = 's3'
     LOGGING_SECTION = 'logging'
-    EXPERIMENTAL_SECTION = 'experimental'
+    MAIL_SECTION = 'mail'
 
     DEFAULTS = {
         DB_SECTION: {
@@ -156,25 +136,15 @@ class MailerConfigParser:
             'connectionTimeout': 30000,
             'queueTimeout': 120,
         },
-        S3_SECTION: {
-            'url': 'http://minio:9000',
-            'vhost': 'minio',
-            'queue': 'minio',
-            'bucket': 'engine-wizard',
-            'region': 'eu-central-1',
-        },
         LOGGING_SECTION: {
             'level': 'INFO',
             'globalLevel': 'WARNING',
             'format': '%(asctime)s | %(levelname)8s | %(name)s: '
                       '[T:%(traceId)s] %(message)s',
         },
-        EXPERIMENTAL_SECTION: {
-            'moreAppsEnabled': False,
-        },
-        'mail': {
+        MAIL_SECTION: {
             'enabled': True,
-            'name': '',
+            'name': 'DS Wizard',
             'email': '',
             'host': '',
             'port': None,
@@ -190,7 +160,11 @@ class MailerConfigParser:
         },
     }
 
-    REQUIRED = []  # type: list[str]
+    REQUIRED = [
+        [MAIL_SECTION, 'email'],
+        [MAIL_SECTION, 'host'],
+        [MAIL_SECTION, 'port'],
+    ]
 
     def __init__(self):
         self.cfg = dict()
@@ -254,16 +228,6 @@ class MailerConfigParser:
         )
 
     @property
-    def s3(self) -> S3Config:
-        return S3Config(
-            url=self.get_or_default(self.S3_SECTION, 'url'),
-            username=self.get_or_default(self.S3_SECTION, 'username'),
-            password=self.get_or_default(self.S3_SECTION, 'password'),
-            bucket=self.get_or_default(self.S3_SECTION, 'bucket'),
-            region=self.get_or_default(self.S3_SECTION, 'region'),
-        )
-
-    @property
     def logging(self) -> LoggingConfig:
         return LoggingConfig(
             level=self.get_or_default(self.LOGGING_SECTION, 'level'),
@@ -272,36 +236,30 @@ class MailerConfigParser:
         )
 
     @property
-    def experimental(self) -> ExperimentalConfig:
-        return ExperimentalConfig(
-            more_apps_enabled=self.get_or_default(
-                self.EXPERIMENTAL_SECTION, 'moreAppsEnabled'
-            ),
-        )
-
-    @property
     def mail(self):
         return MailConfig(
-            enabled=self.get_or_default('mail', 'enabled'),
-            name=self.get_or_default('mail', 'name'),
-            email=self.get_or_default('mail', 'email'),
-            host=self.get_or_default('mail', 'host'),
-            ssl=self.get_or_default('mail', 'ssl'),
-            port=self.get_or_default('mail', 'port'),
-            security=self.get_or_default('mail', 'security'),
-            auth=self.get_or_default('mail', 'authEnabled'),
-            username=self.get_or_default('mail', 'username'),
-            password=self.get_or_default('mail', 'password'),
-            rate_limit_window=self.get_or_default('mail', 'rateLimit', 'window'),
-            rate_limit_count=self.get_or_default('mail', 'rateLimit', 'count'),
+            enabled=self.get_or_default(self.MAIL_SECTION, 'enabled'),
+            name=self.get_or_default(self.MAIL_SECTION, 'name'),
+            email=self.get_or_default(self.MAIL_SECTION, 'email'),
+            host=self.get_or_default(self.MAIL_SECTION, 'host'),
+            ssl=self.get_or_default(self.MAIL_SECTION, 'ssl'),
+            port=self.get_or_default(self.MAIL_SECTION, 'port'),
+            security=self.get_or_default(self.MAIL_SECTION, 'security'),
+            auth=self.get_or_default(self.MAIL_SECTION, 'authEnabled'),
+            username=self.get_or_default(self.MAIL_SECTION, 'username'),
+            password=self.get_or_default(self.MAIL_SECTION, 'password'),
+            rate_limit_window=self.get_or_default(
+                self.MAIL_SECTION, 'rateLimit', 'window'
+            ),
+            rate_limit_count=self.get_or_default(
+                self.MAIL_SECTION, 'rateLimit', 'count'
+            ),
         )
 
     @property
     def config(self) -> MailerConfig:
         return MailerConfig(
             db=self.db,
-            s3=self.s3,
             log=self.logging,
             mail=self.mail,
-            experimental=self.experimental,
         )

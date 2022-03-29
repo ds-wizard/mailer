@@ -27,7 +27,7 @@ class MailTemplate:
         subject_prefix = ctx.get('appTitle', None)
         if subject_prefix is None:
             subject_prefix = mail_name
-        msg.subject = f'[{subject_prefix}] {self.subject}'
+        msg.subject = f'{subject_prefix}: {self.subject}'
         ctx['msgId'] = rq.id
         ctx['subject'] = msg.subject
         ctx['appTitle'] = subject_prefix
