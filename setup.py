@@ -6,7 +6,7 @@ with open('README.md') as f:
 
 setup(
     name='dsw_mailer',
-    version='0.1.0',
+    version='3.10.0',
     description='Worker for sending email notifications',
     long_description=long_description,
     long_description_content_type='text/markdown',
