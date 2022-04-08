@@ -46,7 +46,7 @@ class MailConfig:
                  host: str, port: Optional[int], security: Optional[str],
                  auth: Optional[bool], username: Optional[str],
                  password: Optional[str], rate_limit_window: int,
-                 rate_limit_count: int):
+                 rate_limit_count: int, timeout: int):
         self.enabled = enabled
         self.name = name
         self.email = email
@@ -62,6 +62,7 @@ class MailConfig:
         self.password = password if self.auth is not None else None
         self.rate_limit_window = rate_limit_window
         self.rate_limit_count = rate_limit_count
+        self.timeout = timeout
 
     @property
     def login_user(self) -> str:
@@ -156,7 +157,8 @@ class MailerConfigParser:
             'rateLimit': {
                 'window': 0,
                 'count': 0,
-            }
+            },
+            'timeout': 5,
         },
     }
 
@@ -254,6 +256,7 @@ class MailerConfigParser:
             rate_limit_count=self.get_or_default(
                 self.MAIL_SECTION, 'rateLimit', 'count'
             ),
+            timeout=int(self.get_or_default(self.MAIL_SECTION, 'timeout')),
         )
 
     @property

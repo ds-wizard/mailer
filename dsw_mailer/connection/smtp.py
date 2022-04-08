@@ -21,7 +21,6 @@ class SMTPSender:
 
     def __init__(self, cfg: MailConfig):
         self.cfg = cfg
-        self.timeout = 5
 
     @tenacity.retry(
         reraise=True,
@@ -44,7 +43,7 @@ class SMTPSender:
             host=self.cfg.host,
             port=self.cfg.port,
             context=context,
-            timeout=self.timeout,
+            timeout=self.cfg.timeout,
         ) as server:
             if self.cfg.auth:
                 server.login(
@@ -62,7 +61,7 @@ class SMTPSender:
         with smtplib.SMTP(
             host=self.cfg.host,
             port=self.cfg.port,
-            timeout=self.timeout,
+            timeout=self.cfg.timeout,
         ) as server:
             if self.cfg.is_tls:
                 server.starttls(context=context)

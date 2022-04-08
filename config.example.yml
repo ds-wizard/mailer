@@ -37,3 +37,5 @@ mail:
     window: 300
     # max number of messages within the window
     count: 10
+  # SMTP connection timeout (default: 5 seconds)
+  timeout: 5
