@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'click',
         'jinja2',
+        'pathvalidate',
         'psycopg2',
         'PyYAML',
         'tenacity',

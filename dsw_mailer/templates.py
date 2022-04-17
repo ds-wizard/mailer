@@ -6,7 +6,8 @@ from typing import Optional
 
 from .config import MailerConfig
 from .consts import DEFAULT_ENCODING
-from .model import MailMessage, MessageRequest, TemplateDescriptor
+from .model import MailMessage, MailAttachment, MessageRequest,\
+    TemplateDescriptor, TemplateDescriptorPart
 from .logging import LOGGER
 
 
@@ -19,6 +20,8 @@ class MailTemplate:
         self.subject = subject
         self.html_template = html_template
         self.plain_template = plain_template
+        self.attachments = list()  # type: list[MailAttachment]
+        self.html_images = list()  # type: list[MailAttachment]
 
     def render(self, rq: MessageRequest, mail_name: str, mail_from: str) -> MailMessage:
         ctx = rq.ctx
@@ -37,7 +40,8 @@ class MailTemplate:
             msg.html_body = self.html_template.render(ctx=ctx)
         if self.plain_template is not None:
             msg.plain_body = self.plain_template.render(ctx=ctx)
-        # TODO: images/attachments
+        msg.attachments = self.attachments
+        msg.html_images = self.html_images
         return msg
 
 
@@ -63,6 +67,18 @@ class TemplateRegistry:
             )
         return None
 
+    def _load_attachment(self, template_path: pathlib.Path,
+                         part: TemplateDescriptorPart) -> Optional[MailAttachment]:
+        file_path = template_path / part.file
+        if file_path.exists() and file_path.is_file():
+            binary_data = file_path.read_bytes()
+            return MailAttachment(
+                name=part.name,
+                content_type=part.content_type,
+                data=binary_data,
+            )
+        return None
+
     @staticmethod
     def _load_descriptor(path: pathlib.Path) -> Optional[TemplateDescriptor]:
         if not path.exists() or not path.is_file():
@@ -71,6 +87,8 @@ class TemplateRegistry:
             data = json.loads(path.read_text(encoding=DEFAULT_ENCODING))
             return TemplateDescriptor.load_from_file(data)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             LOGGER.warn(f'Cannot load template descriptor at {str(path)}'
                         f'due to: {str(e)}')
             return None
@@ -79,22 +97,30 @@ class TemplateRegistry:
                        descriptor: TemplateDescriptor) -> Optional[MailTemplate]:
         html_template = None
         plain_template = None
+        attachments = list()
+        html_images = list()
         for part in descriptor.parts:
             if part.type == 'html':
-                html_template = self._load_jinja2(path / part.template)
+                html_template = self._load_jinja2(path / part.file)
             elif part.type == 'plain':
-                plain_template = self._load_jinja2(path / part.template)
-            # TODO: attachments/images
+                plain_template = self._load_jinja2(path / part.file)
+            elif part.type == 'attachment':
+                attachments.append(self._load_attachment(path, part))
+            elif part.type == 'html_image':
+                html_images.append(self._load_attachment(path, part))
         if html_template is None and plain_template is None:
             LOGGER.warn(f'Template "{descriptor.id}" from {str(path)}'
                         f'does not have HTML nor Plain part - skipping')
             return None
-        return MailTemplate(
+        template = MailTemplate(
             name=path.name,
             subject=descriptor.subject,
             html_template=html_template,
             plain_template=plain_template,
         )
+        template.attachments = [a for a in attachments if a is not None]
+        template.html_images = [a for a in html_images if a is not None]
+        return template
 
     def _load_templates(self, mode: str):
         for descriptor_filename in self.workdir.glob(self.DESCRIPTOR_PATTERN):
