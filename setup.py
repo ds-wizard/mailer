@@ -6,7 +6,7 @@ with open('README.md') as f:
 
 setup(
     name='dsw_mailer',
-    version='3.10.0',
+    version='3.11.0',
     description='Worker for sending email notifications',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'click',
         'jinja2',
+        'pathvalidate',
         'psycopg2',
         'PyYAML',
         'tenacity',
