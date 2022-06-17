@@ -8,7 +8,7 @@ from typing import Optional
 
 from .config import MailerConfig
 from .connection import Database, SMTPSender, PersistentCommand, \
-    CommandWorker, CommandQueue
+    CommandWorker, CommandQueue, SentryReporter
 from .connection.database import DBAppConfig
 from .consts import Queries, CMD_COMPONENT
 from .context import Context
@@ -38,6 +38,12 @@ class Mailer(CommandWorker):
             sender=SMTPSender(cfg=self.cfg.mail),
             mode=mode,
         )
+        if self.cfg.sentry.enabled and self.cfg.sentry.workers_dsn is not None:
+            SentryReporter.initialize(
+                dsn=self.cfg.sentry.workers_dsn,
+                environment=self.cfg.general.environment,
+                server_name=self.cfg.general.client_url,
+            )
 
     def _prepare_logging(self):
         prepare_logging(cfg=self.cfg)
@@ -60,6 +66,7 @@ class Mailer(CommandWorker):
             self._process_command(cmd)
         except Exception as e:
             Context.logger.warning(f'Errored with exception: {str(e)}')
+            SentryReporter.capture_exception(e)
             ctx.app.db.execute_query(
                 query=Queries.UPDATE_CMD_ERROR,
                 attempts=command.get('attempts', 0) + 1,

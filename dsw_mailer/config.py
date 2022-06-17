@@ -9,6 +9,30 @@ class MissingConfigurationError(Exception):
         self.missing = missing
 
 
+class GeneralConfig:
+
+    def __init__(self, environment: str, client_url: str):
+        self.environment = environment
+        self.client_url = client_url
+
+    def __str__(self):
+        return f'GeneralConfig\n' \
+               f'- environment = {self.environment} ({type(self.environment)})\n' \
+               f'- client_url = {self.client_url} ({type(self.client_url)})\n'
+
+
+class SentryConfig:
+
+    def __init__(self, enabled: bool, workers_dsn: Optional[str]):
+        self.enabled = enabled
+        self.workers_dsn = workers_dsn
+
+    def __str__(self):
+        return f'SentryConfig\n' \
+               f'- enabled = {self.enabled} ({type(self.enabled)})\n' \
+               f'- workers_dsn = {self.workers_dsn} ({type(self.workers_dsn)})\n'
+
+
 class DatabaseConfig:
 
     def __init__(self, connection_string: str, connection_timeout: int,
@@ -110,10 +134,13 @@ class MailConfig:
 class MailerConfig:
 
     def __init__(self, db: DatabaseConfig, log: LoggingConfig,
-                 mail: MailConfig):
+                 mail: MailConfig, sentry: SentryConfig,
+                 general: GeneralConfig):
         self.db = db
         self.log = log
         self.mail = mail
+        self.sentry = sentry
+        self.general = general
 
     def __str__(self):
         return f'MailerConfig\n' \
@@ -121,6 +148,8 @@ class MailerConfig:
                f'{self.db}' \
                f'{self.log}' \
                f'{self.mail}' \
+               f'{self.sentry}' \
+               f'{self.general}' \
                f'====================\n'
 
 
@@ -129,6 +158,8 @@ class MailerConfigParser:
     DB_SECTION = 'database'
     LOGGING_SECTION = 'logging'
     MAIL_SECTION = 'mail'
+    SENTRY_SECTION = 'sentry'
+    GENERAL_SECTION = 'general'
 
     DEFAULTS = {
         DB_SECTION: {
@@ -159,6 +190,14 @@ class MailerConfigParser:
                 'count': 0,
             },
             'timeout': 5,
+        },
+        SENTRY_SECTION: {
+            'enabled': False,
+            'workersDsn': None
+        },
+        GENERAL_SECTION: {
+            'environment': 'Production',
+            'clientUrl': 'http://localhost:8080',
         },
     }
 
@@ -260,9 +299,25 @@ class MailerConfigParser:
         )
 
     @property
+    def sentry(self) -> SentryConfig:
+        return SentryConfig(
+            enabled=self.get_or_default(self.SENTRY_SECTION, 'enabled'),
+            workers_dsn=self.get_or_default(self.SENTRY_SECTION, 'workersDsn'),
+        )
+
+    @property
+    def general(self) -> GeneralConfig:
+        return GeneralConfig(
+            environment=self.get_or_default(self.GENERAL_SECTION, 'environment'),
+            client_url=self.get_or_default(self.GENERAL_SECTION, 'clientUrl'),
+        )
+
+    @property
     def config(self) -> MailerConfig:
         return MailerConfig(
             db=self.db,
             log=self.logging,
             mail=self.mail,
+            sentry=self.sentry,
+            general=self.general,
         )
