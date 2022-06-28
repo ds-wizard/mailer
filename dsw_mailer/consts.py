@@ -1,5 +1,5 @@
 PROG_NAME = 'dsw-mailer'
-VERSION = '3.12.0'
+PACKAGE_VERSION = '3.13.0'
 
 LOGGER_NAME = 'mailer'
 
@@ -8,6 +8,20 @@ DEFAULT_ENCODING = 'utf-8'
 
 CMD_CHANNEL = 'mailer'
 CMD_COMPONENT = 'mailer'
+
+
+_DEFAULT_BUILT_AT = 'BUILT_AT'
+BUILT_AT = '--BUILT_AT--'
+_DEFAULT_VERSION = 'VERSION'
+VERSION = '--VERSION--'
+
+
+BUILD_INFO = {
+    'name': PROG_NAME,
+    'packageVersion': PACKAGE_VERSION,
+    'version': VERSION if VERSION != f'--{_DEFAULT_VERSION}--' else 'unknown',
+    'builtAt': BUILT_AT if BUILT_AT != f'--{_DEFAULT_BUILT_AT}--' else 'unknown',
+}
 
 
 class CommandState:

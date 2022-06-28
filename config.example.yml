@@ -39,3 +39,11 @@ mail:
     count: 10
   # SMTP connection timeout (default: 5 seconds)
   timeout: 5
+
+#sentry:
+#  enabled:
+#  workersDsn:
+
+#general:
+#  environment: Test
+#  clientUrl: http://localhost:3001
