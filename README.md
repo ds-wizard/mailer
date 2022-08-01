@@ -8,6 +8,8 @@
 
 *Standalone Mailer Service for DS Wizard*
 
+:bangbang: **This project has been moved to monorepo [ds-wizard/engine-tools](https://github.com/ds-wizard/engine-tools)** :bangbang:
+
 ## Dependencies
 
 -  PostgreSQL
